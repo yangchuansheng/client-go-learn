@@ -30,7 +30,7 @@ func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clie
 		data []byte
 		err  error
 	)
-	if data, err = ioutil.ReadFile("manifests/nginx.yaml"); err != nil {
+	if data, err = ioutil.ReadFile("manifests/deployment.yaml"); err != nil {
 		log.Println(err)
 	}
 	if data, err = yaml2.ToJSON(data); err != nil {

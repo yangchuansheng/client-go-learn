@@ -96,7 +96,7 @@ func (receiver *CustomController) CreateResources(ctx context.Context, config *r
 	return err
 }
 
-func (receiver *CustomController) ApplyResources(ctx context.Context, config *rest.Config) error {
+func (receiver *CustomController) ApplyResources(config *rest.Config) error {
 	log.Println("Creating or Updating Resources...")
 	var (
 		data []byte
@@ -107,8 +107,6 @@ func (receiver *CustomController) ApplyResources(ctx context.Context, config *re
 	}
 
 	// Prepare the dynamic client and typed client
-	// configController := ConfigController{}
-	// config, err := configController.Initkubeconfig()
 	dyn, err := dynamic.NewForConfig(config)
 	if err != nil {
 		panic(err)
