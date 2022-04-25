@@ -3,7 +3,6 @@ package main
 import (
 	"clientset-demo/controller"
 	"context"
-	"fmt"
 	"github.com/modood/table"
 	"io"
 	"k8s.io/client-go/kubernetes"
@@ -53,20 +52,23 @@ func main() {
 	table.Output(res)
 
 	/*
-		deployment, err := deploymentController.CreateDeployment(clientset, "default")
+		_, err = deploymentController.ApplyDeployment(clientset, "default")
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("Created Deployment %q.\n", deployment.GetObjectMeta().GetName())
 
 		err = deploymentController.UpdateDeployment(clientset, "default", "nginx1")
 		if err != nil {
 			panic(fmt.Errorf("update failed: %v", err))
 		}
+
+		err = customController.AdvancedApplyResources(config)
+		if err != nil {
+			panic(err)
+		}
 	*/
-	results, err := customController.CreateResources(context.Background(), config)
+	err = customController.ApplyResources(context.Background(), config)
 	if err != io.EOF {
 		log.Fatal("eof ", err)
 	}
-	fmt.Printf("Created resource\n %v\n", results)
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/pytimer/k8sutil/apply"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -22,12 +23,11 @@ import (
 
 type CustomController struct{}
 
-func (receiver *CustomController) CreateResources(ctx context.Context, config *rest.Config) (string, error) {
-	log.Println("Creating Resources...")
+func (receiver *CustomController) ApplyResources(ctx context.Context, config *rest.Config) error {
+	fmt.Println("Creating or Updating Resources...")
 	var (
-		data    []byte
-		err     error
-		results string
+		data []byte
+		err  error
 	)
 	if data, err = ioutil.ReadFile("manifests/nginx.yaml"); err != nil {
 		log.Println(err)
@@ -89,18 +89,29 @@ func (receiver *CustomController) CreateResources(ctx context.Context, config *r
 			dri = dyn.Resource(mapping.Resource)
 		}
 
-		// Create the object
+		// Create or Update the object
 		var result *unstructured.Unstructured
-		if result, err = dri.Create(ctx, unstructuredObj, metav1.CreateOptions{}); err != nil {
-			log.Fatal(err)
+		if _, err := dri.Get(ctx, unstructuredObj.GetName(), metav1.GetOptions{}); err != nil {
+			// 不存在就创建
+			if result, err = dri.Create(ctx, unstructuredObj, metav1.CreateOptions{}); err != nil {
+				log.Fatal(err)
+			}
+			results := strings.Join([]string{result.GetKind(), " --> ", result.GetName(), "\n "}, "")
+			fmt.Printf("Created resource: %v\n", results)
+		} else {
+			// 存在就更新
+			if result, err = dri.Update(ctx, unstructuredObj, metav1.UpdateOptions{}); err != nil {
+				log.Fatal(err)
+			}
+			results := strings.Join([]string{result.GetKind(), " --> ", result.GetName(), "\n "}, "")
+			fmt.Printf("Updated resource: %v\n", results)
 		}
-		results = strings.Join([]string{results, result.GetKind(), " --> ", result.GetName(), "\n "}, "")
 	}
 
-	return results, err
+	return err
 }
 
-func (receiver *CustomController) ApplyResources(config *rest.Config) error {
+func (receiver *CustomController) AdvancedApplyResources(config *rest.Config) error {
 	log.Println("Creating or Updating Resources...")
 	var (
 		data []byte

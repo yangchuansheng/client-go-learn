@@ -27,20 +27,36 @@ func (receiver *DeploymentController) ListDeployments(clientset *kubernetes.Clie
 func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clientset, namespace string) (*appsv1.Deployment, error) {
 	log.Println("Creating Deployment...")
 	var (
-		data []byte
-		err  error
+		data   []byte
+		err    error
+		result *appsv1.Deployment
 	)
+	// 读取 YAML 文件
 	if data, err = ioutil.ReadFile("manifests/deployment.yaml"); err != nil {
 		log.Println(err)
 	}
+	// YAML 转 JSON
 	if data, err = yaml2.ToJSON(data); err != nil {
 		log.Println(err)
 	}
+	// JSON 转 struct
 	deployment := &appsv1.Deployment{}
 	if err := json.Unmarshal(data, deployment); err != nil {
 		log.Println(err)
 	}
-	result, err := clientset.AppsV1().Deployments(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+
+	deployments := clientset.AppsV1().Deployments(namespace)
+	if _, err = deployments.Get(context.TODO(), deployment.Name, metav1.GetOptions{}); err != nil {
+		if result, err = deployments.Create(context.Background(), deployment, metav1.CreateOptions{}); err != nil {
+			log.Fatal("err:\t", err)
+		}
+		fmt.Printf("Created Deployment %q.\n", deployment.GetObjectMeta().GetName())
+	} else {
+		if result, err = deployments.Update(context.Background(), deployment, metav1.UpdateOptions{}); err != nil {
+			log.Fatal("err:\t", err)
+		}
+		fmt.Printf("Updated Deployment %q.\n", deployment.GetObjectMeta().GetName())
+	}
 
 	return result, err
 }
@@ -48,6 +64,18 @@ func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clie
 func (receiver *DeploymentController) UpdateDeployment(clientset *kubernetes.Clientset, namespace, name string) error {
 	log.Println("Updating Deployment...")
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
+	//    You have two options to Update() this Deployment:
+	//
+	//    1. Modify the "deployment" variable and call: Update(deployment).
+	//       This works like the "kubectl replace" command and it overwrites/loses changes
+	//       made by other clients between you Create() and Update() the object.
+	//    2. Modify the "result" returned by Get() and retry Update(result) until
+	//       you no longer get a conflict error. This way, you can preserve changes made
+	//       by other clients between Create() and Update(). This is implemented below
+	//			 using the retry utility package included with client-go. (RECOMMENDED)
+	//
+	// More Info:
+	// https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		result, getErr := deploymentsClient.Get(context.TODO(), name, metav1.GetOptions{})
 		if errors.IsNotFound(getErr) {
