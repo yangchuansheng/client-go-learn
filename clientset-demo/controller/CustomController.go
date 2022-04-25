@@ -17,15 +17,17 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"log"
+	"strings"
 )
 
 type CustomController struct{}
 
-func (receiver *CustomController) CreateResources(ctx context.Context, config *rest.Config) error {
+func (receiver *CustomController) CreateResources(ctx context.Context, config *rest.Config) (string, error) {
 	log.Println("Creating Resources...")
 	var (
-		data []byte
-		err  error
+		data    []byte
+		err     error
+		results string
 	)
 	if data, err = ioutil.ReadFile("manifests/nginx.yaml"); err != nil {
 		log.Println(err)
@@ -88,12 +90,14 @@ func (receiver *CustomController) CreateResources(ctx context.Context, config *r
 		}
 
 		// Create the object
-		if _, err := dri.Create(ctx, unstructuredObj, metav1.CreateOptions{}); err != nil {
+		var result *unstructured.Unstructured
+		if result, err = dri.Create(ctx, unstructuredObj, metav1.CreateOptions{}); err != nil {
 			log.Fatal(err)
 		}
+		results = strings.Join([]string{results, result.GetKind(), " --> ", result.GetName(), "\n "}, "")
 	}
 
-	return err
+	return results, err
 }
 
 func (receiver *CustomController) ApplyResources(config *rest.Config) error {

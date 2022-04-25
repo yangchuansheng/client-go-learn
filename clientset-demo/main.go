@@ -64,9 +64,9 @@ func main() {
 			panic(fmt.Errorf("update failed: %v", err))
 		}
 	*/
-	err = customController.CreateResources(context.Background(), config)
+	results, err := customController.CreateResources(context.Background(), config)
 	if err != io.EOF {
 		log.Fatal("eof ", err)
 	}
-	fmt.Println("Created resource")
+	fmt.Printf("Created resource\n %v\n", results)
 }
