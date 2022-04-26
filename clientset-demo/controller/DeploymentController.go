@@ -51,7 +51,7 @@ func (receiver *DeploymentController) ListDeployments(clientset *kubernetes.Clie
 }
 
 func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clientset, namespace string) (*appsv1.Deployment, error) {
-	log.Println("Creating Deployment...")
+	log.Println("Creating or Updating Deployment...")
 	var (
 		data   []byte
 		err    error

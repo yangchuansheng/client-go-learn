@@ -2,7 +2,9 @@ package main
 
 import (
 	"clientset-demo/controller"
+	"clientset-demo/util"
 	"context"
+	"fmt"
 	"github.com/modood/table"
 	"io"
 	"k8s.io/client-go/kubernetes"
@@ -29,24 +31,31 @@ func main() {
 	}
 	table.Output(res)
 
-	/*
-		_, err = deploymentController.ApplyDeployment(clientset, "default")
-		if err != nil {
-			panic(err)
-		}
+	// Apply Deployment from YAML
+	util.Prompt()
+	_, err = deploymentController.ApplyDeployment(clientset, "default")
+	if err != nil {
+		panic(err)
+	}
 
-		err = deploymentController.UpdateDeployment(clientset, "default", "nginx1")
-		if err != nil {
-			panic(fmt.Errorf("update failed: %v", err))
-		}
+	// Update Deployment
+	util.Prompt()
+	err = deploymentController.UpdateDeployment(clientset, "default", "nginx")
+	if err != nil {
+		panic(fmt.Errorf("update failed: %v", err))
+	}
 
-		err = customController.AdvancedApplyResources(config)
-		if err != nil {
-			panic(err)
-		}
-	*/
+	// Create or Update any resources from YAML
+	util.Prompt()
 	err = customController.ApplyResources(context.Background(), config)
 	if err != io.EOF {
 		log.Fatal("eof ", err)
+	}
+
+	// Apply any resources from YAML
+	util.Prompt()
+	err = customController.AdvancedApplyResources(config)
+	if err != nil {
+		panic(err)
 	}
 }
