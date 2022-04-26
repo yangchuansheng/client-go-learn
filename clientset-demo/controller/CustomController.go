@@ -131,9 +131,9 @@ func (receiver *CustomController) AdvancedApplyResources(config *rest.Config) er
 		panic(err)
 	}
 	applyOptions := apply.NewApplyOptions(dyn, discoveryClient)
-	if err := applyOptions.Apply(context.TODO(), data); err != nil {
-		log.Fatalf("apply error: %v", err)
+	if err = applyOptions.Apply(context.TODO(), data); err != nil {
+		return err
 	}
 
-	return err
+	return nil
 }

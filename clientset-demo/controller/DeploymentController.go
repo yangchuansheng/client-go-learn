@@ -30,9 +30,6 @@ func (receiver *DeploymentController) ListDeployments(clientset *kubernetes.Clie
 	log.Printf("Listing Deployments in namespace %q:\n", namespace)
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	deploymentsList, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
 
 	res := make([]Result, 0)
 	for i := 0; i < len(deploymentsList.Items); i++ {
@@ -73,14 +70,10 @@ func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clie
 
 	deployments := clientset.AppsV1().Deployments(namespace)
 	if _, err = deployments.Get(context.TODO(), deployment.Name, metav1.GetOptions{}); err != nil {
-		if result, err = deployments.Create(context.Background(), deployment, metav1.CreateOptions{}); err != nil {
-			log.Fatal("err:\t", err)
-		}
+		result, err = deployments.Create(context.Background(), deployment, metav1.CreateOptions{})
 		fmt.Printf("Created Deployment %q.\n", deployment.GetObjectMeta().GetName())
 	} else {
-		if result, err = deployments.Update(context.Background(), deployment, metav1.UpdateOptions{}); err != nil {
-			log.Fatal("err:\t", err)
-		}
+		result, err = deployments.Update(context.Background(), deployment, metav1.UpdateOptions{})
 		fmt.Printf("Updated Deployment %q.\n", deployment.GetObjectMeta().GetName())
 	}
 
@@ -135,7 +128,7 @@ func (receiver *DeploymentController) UpdateDeployment(clientset *kubernetes.Cli
 func (receiver *DeploymentController) DeleteDeployments(clientset *kubernetes.Clientset, namespace, name string) error {
 	log.Println("Deleting deployments...")
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
-	deletePolicy := metav1.DeletePropagationForeground
+	deletePolicy := metav1.DeletePropagationForeground // 'Foreground' - 删除前台中所有依赖项的级联策略。
 	if err := deploymentsClient.Delete(context.TODO(), name, metav1.DeleteOptions{PropagationPolicy: &deletePolicy}); err != nil {
 		return err
 	}

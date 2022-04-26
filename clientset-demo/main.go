@@ -35,7 +35,7 @@ func main() {
 	util.Prompt()
 	_, err = deploymentController.ApplyDeployment(clientset, "default")
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("Create or Update deployment failed: %v", err))
 	}
 
 	// Update Deployment
