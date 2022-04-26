@@ -7,17 +7,7 @@ import (
 	"io"
 	"k8s.io/client-go/kubernetes"
 	"log"
-	"strconv"
 )
-
-type Result struct {
-	No                string
-	Name              string
-	Namespace         string
-	Replicas          string
-	Image             string
-	CreationTimestamp string
-}
 
 var (
 	deploymentController = &controller.DeploymentController{}
@@ -32,22 +22,10 @@ func main() {
 		panic(err)
 	}
 
-	deploymentList, err := deploymentController.ListDeployments(clientset, "default")
+	// List Deployments
+	_, res, err := deploymentController.ListDeployments(clientset, "default")
 	if err != nil {
 		panic(err)
-	}
-
-	res := make([]Result, 0)
-	for i := 0; i < len(deploymentList.Items); i++ {
-		deployment := deploymentList.Items[i]
-		res = append(res, Result{
-			No:                strconv.Itoa(i),
-			Name:              deployment.Name,
-			Namespace:         deployment.Namespace,
-			Replicas:          strconv.Itoa(int(*deployment.Spec.Replicas)),
-			Image:             deployment.Spec.Template.Spec.Containers[0].Image,
-			CreationTimestamp: deployment.CreationTimestamp.String(),
-		})
 	}
 	table.Output(res)
 

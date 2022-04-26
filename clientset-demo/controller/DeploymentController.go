@@ -12,16 +12,42 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
 	"log"
+	"strconv"
 )
 
 type DeploymentController struct{}
 
-func (receiver *DeploymentController) ListDeployments(clientset *kubernetes.Clientset, namespace string) (*appsv1.DeploymentList, error) {
+type Result struct {
+	No                string
+	Name              string
+	Namespace         string
+	Replicas          string
+	Image             string
+	CreationTimestamp string
+}
+
+func (receiver *DeploymentController) ListDeployments(clientset *kubernetes.Clientset, namespace string) (*appsv1.DeploymentList, []Result, error) {
 	log.Printf("Listing Deployments in namespace %q:\n", namespace)
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
-	list, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
+	deploymentsList, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
 
-	return list, err
+	res := make([]Result, 0)
+	for i := 0; i < len(deploymentsList.Items); i++ {
+		deployment := deploymentsList.Items[i]
+		res = append(res, Result{
+			No:                strconv.Itoa(i),
+			Name:              deployment.Name,
+			Namespace:         deployment.Namespace,
+			Replicas:          strconv.Itoa(int(*deployment.Spec.Replicas)),
+			Image:             deployment.Spec.Template.Spec.Containers[0].Image,
+			CreationTimestamp: deployment.CreationTimestamp.String(),
+		})
+	}
+
+	return deploymentsList, res, err
 }
 
 func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clientset, namespace string) (*appsv1.Deployment, error) {
