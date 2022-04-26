@@ -59,16 +59,16 @@ func (receiver *DeploymentController) ApplyDeployment(clientset *kubernetes.Clie
 	)
 	// 读取 YAML 文件
 	if data, err = ioutil.ReadFile("manifests/deployment.yaml"); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 	// YAML 转 JSON
 	if data, err = yaml2.ToJSON(data); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 	// JSON 转 struct
 	deployment := &appsv1.Deployment{}
 	if err := json.Unmarshal(data, deployment); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	deployments := clientset.AppsV1().Deployments(namespace)

@@ -30,7 +30,7 @@ func (receiver *CustomController) ApplyResources(ctx context.Context, config *re
 		err  error
 	)
 	if data, err = ioutil.ReadFile("manifests/nginx.yaml"); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	// Prepare the dynamic client and typed client
@@ -59,7 +59,7 @@ func (receiver *CustomController) ApplyResources(ctx context.Context, config *re
 		obj, gvk, err := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(rawObj.Raw, nil, nil)
 		unstructuredMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		unstructuredObj := &unstructured.Unstructured{Object: unstructuredMap}
@@ -94,14 +94,14 @@ func (receiver *CustomController) ApplyResources(ctx context.Context, config *re
 		if _, err := dri.Get(ctx, unstructuredObj.GetName(), metav1.GetOptions{}); err != nil {
 			// 不存在就创建
 			if result, err = dri.Create(ctx, unstructuredObj, metav1.CreateOptions{}); err != nil {
-				log.Fatal(err)
+				panic(err)
 			}
 			results := strings.Join([]string{result.GetKind(), " --> ", result.GetName(), "\n "}, "")
 			fmt.Printf("Created resource: %v\n", results)
 		} else {
 			// 存在就更新
 			if result, err = dri.Update(ctx, unstructuredObj, metav1.UpdateOptions{}); err != nil {
-				log.Fatal(err)
+				panic(err)
 			}
 			results := strings.Join([]string{result.GetKind(), " --> ", result.GetName(), "\n "}, "")
 			fmt.Printf("Updated resource: %v\n", results)
@@ -118,7 +118,7 @@ func (receiver *CustomController) AdvancedApplyResources(config *rest.Config) er
 		err  error
 	)
 	if data, err = ioutil.ReadFile("manifests/nginx.yaml"); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	// Prepare the dynamic client and typed client

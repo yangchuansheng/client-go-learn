@@ -5,6 +5,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"log"
 	"path/filepath"
 )
 
@@ -23,9 +24,10 @@ func (receiver *ConfigController) Initkubeconfig() (*rest.Config, error) {
 	}
 	flag.Parse()
 
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	var err error
+	config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return config, err
