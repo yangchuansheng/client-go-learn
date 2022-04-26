@@ -131,3 +131,14 @@ func (receiver *DeploymentController) UpdateDeployment(clientset *kubernetes.Cli
 	log.Println("Updated deployment...")
 	return nil
 }
+
+func (receiver *DeploymentController) DeleteDeployments(clientset *kubernetes.Clientset, namespace, name string) error {
+	log.Println("Deleting deployments...")
+	deploymentsClient := clientset.AppsV1().Deployments(namespace)
+	deletePolicy := metav1.DeletePropagationForeground
+	if err := deploymentsClient.Delete(context.TODO(), name, metav1.DeleteOptions{PropagationPolicy: &deletePolicy}); err != nil {
+		return err
+	}
+	log.Println("Deleted deployments...")
+	return nil
+}

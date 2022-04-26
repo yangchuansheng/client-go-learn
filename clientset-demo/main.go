@@ -42,7 +42,14 @@ func main() {
 	util.Prompt()
 	err = deploymentController.UpdateDeployment(clientset, "default", "nginx")
 	if err != nil {
-		panic(fmt.Errorf("update failed: %v", err))
+		panic(fmt.Errorf("Update deployment nginx failed: %v", err))
+	}
+
+	// Delete Deployment
+	util.Prompt()
+	err = deploymentController.DeleteDeployments(clientset, "default", "nginx")
+	if err != nil {
+		panic(fmt.Errorf("Delete deployment nginx failed: %v", err))
 	}
 
 	// Create or Update any resources from YAML
